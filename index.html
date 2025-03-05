@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option Chain Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        #controls { margin-bottom: 20px; }
+        .chart-container { 
+            width: 80%; 
+            margin: 20px auto; 
+            position: relative; 
+            transition: all 0.3s ease; 
+        }
+        canvas { 
+            max-width: 100%; 
+            width: 100%; 
+            height: 100%; 
+        }
+        .chart-container.normal { 
+            aspect-ratio: 2 / 1; /* Wide rectangle for normal mode */
+        }
+        .chart-container.swapped { 
+            aspect-ratio: 1 / 2; /* Tall rectangle for swapped mode */
+        }
+        #expirationControls { margin-top: 10px; }
+        #expirations { width: 300px; height: 100px; }
+        #aggregation { margin-top: 10px; }
+        #strikeFilter { margin-top: 10px; }
+        #exposureSelect { margin-top: 10px; }
+        #customGraphSection { margin-top: 20px; border: 1px solid #ccc; padding: 10px; }
+        #customGraphInputs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        #customGraphInputs div { margin: 5px; }
+        .chart-controls { margin-top: 10px; }
+        .chart-controls button, .chart-controls input { margin: 0 5px; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="symbol">Stock Symbol (e.g., AAPL):</label>
+        <input type="text" id="symbol" value="AAPL">
+        <button id="fetchExpirationsButton">Load Expirations</button>
+        <div id="expirationControls">
+            <label for="expirations">Select Expirations:</label><br>
+            <select id="expirations" multiple></select><br>
+            <button id="fetchChainsButton" disabled>Fetch Option Chains</button><br>
+            <div id="aggregation">
+                <label>Aggregation:</label><br>
+                <input type="radio" id="sum" name="agg" value="sum" checked>
+                <label for="sum">Sum Exposures</label>
+                <input type="radio" id="separate" name="agg" value="separate">
+                <label for="separate">Separate Datasets</label>
+            </div>
+            <div id="strikeFilter">
+                <label for="strikesAbove">Strikes Above:</label>
+                <input type="number" id="strikesAbove" min="0" value="5" style="width: 50px;">
+                <label for="strikesBelow">Strikes Below:</label>
+                <input type="number" id="strikesBelow" min="0" value="5" style="width: 50px;">
+                <button id="filterStrikesButton" disabled>Filter Strikes</button>
+            </div>
+            <div id="exposureSelect">
+                <label>Exposures to Plot:</label><br>
+                <input type="checkbox" id="deltaCheck" checked>
+                <label for="deltaCheck">Delta</label>
+                <input type="checkbox" id="gammaCheck" checked>
+                <label for="gammaCheck">Gamma</label>
+                <input type="checkbox" id="vegaCheck" checked>
+                <label for="vegaCheck">Vega</label>
+                <input type="checkbox" id="vannaCheck" checked>
+                <label for="vannaCheck">Vanna</label>
+                <input type="checkbox" id="charmCheck" checked>
+                <label for="charmCheck">Charm</label>
+                <input type="checkbox" id="vommaCheck" checked>
+                <label for="vommaCheck">Vomma</label>
+                <input type="checkbox" id="speedCheck" checked>
+                <label for="speedCheck">Speed</label>
+            </div>
+        </div>
+        <div id="customGraphSection">
+            <h3>Create Custom Graph</h3>
+            <div id="customGraphInputs">
+                <div>
+                    <label for="customName">Graph Name:</label>
+                    <input type="text" id="customName" placeholder="e.g., VegaGamma">
+                </div>
+                <div>
+                    <label for="value1">Value 1:</label>
+                    <select id="value1">
+                        <option value="deltaExposure">Delta Exposure</option>
+                        <option value="gammaExposure">Gamma Exposure</option>
+                        <option value="vegaExposure">Vega Exposure</option>
+                        <option value="vannaExposure">Vanna Exposure</option>
+                        <option value="charmExposure">Charm Exposure</option>
+                        <option value="vommaExposure">Vomma Exposure</option>
+                        <option value="speedExposure">Speed Exposure</option>
+                        <option value="delta">Delta</option>
+                        <option value="gamma">Gamma</option>
+                        <option value="vega">Vega</option>
+                        <option value="vanna">Vanna</option>
+                        <option value="charm">Charm</option>
+                        <option value="vomma">Vomma</option>
+                        <option value="speed">Speed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="operation">Operation:</label>
+                    <select id="operation">
+                        <option value="multiply">*</option>
+                        <option value="add">+</option>
+                        <option value="subtract">-</option>
+                        <option value="divide">/</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="value2">Value 2:</label>
+                    <select id="value2">
+                        <option value="deltaExposure">Delta Exposure</option>
+                        <option value="gammaExposure">Gamma Exposure</option>
+                        <option value="vegaExposure">Vega Exposure</option>
+                        <option value="vannaExposure">Vanna Exposure</option>
+                        <option value="charmExposure">Charm Exposure</option>
+                        <option value="vommaExposure">Vomma Exposure</option>
+                        <option value="speedExposure">Speed Exposure</option>
+                        <option value="delta">Delta</option>
+                        <option value="gamma">Gamma</option>
+                        <option value="vega">Vega</option>
+                        <option value="vanna">Vanna</option>
+                        <option value="charm">Charm</option>
+                        <option value="vomma">Vomma</option>
+                        <option value="speed">Speed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="chartType">Chart Type:</label>
+                    <select id="chartType">
+                        <option value="line">Line</option>
+                        <option value="bar">Bar</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="swapAxes">Swap X/Y Axes:</label>
+                    <input type="checkbox" id="swapAxes">
+                </div>
+                <div>
+                    <button id="addCustomGraph">Add Graph</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="loading">Loading...</div>
+    <div class="chart-container normal" id="deltaContainer">
+        <canvas id="deltaChart"></canvas>
+        <div class="chart-controls">
+            <button id="deltaSwap">Swap X/Y</button>
+            <button id="deltaToggle">Toggle Line/Bar</button>
+        </div>
+    </div>
+    <div class="chart-container normal" id="gammaContainer">
+        <canvas id="gammaChart"></canvas>
+        <div class="chart-controls">
+            <button id="gammaSwap">Swap X/Y</button>
+            <button id="gammaToggle">Toggle Line/Bar</button>
+        </div>
+    </div>
+    <div class="chart-container normal" id="vegaContainer">
+        <canvas id="vegaChart"></canvas>
+        <div class="chart-controls">
+            <button id="vegaSwap">Swap X/Y</button>
+            <button id="vegaToggle">Toggle Line/Bar</button>
+        </div>
+    </div>
+    <div class="chart-container normal" id="vannaContainer">
+        <canvas id="vannaChart"></canvas>
+        <div class="chart-controls">
+            <button id="vannaSwap">Swap X/Y</button>
+            <button id="vannaToggle">Toggle Line/Bar</button>
+        </div>
+    </div>
+    <div class="chart-container normal" id="charmContainer">
+        <canvas id="charmChart"></canvas>
+        <div class="chart-controls">
+            <button id="charmSwap">Swap X/Y</button>
+            <button id="charmToggle">Toggle Line/Bar</button>
+        </div>
+    </div>
+    <div class="chart-container normal" id="vommaContainer">
+        <canvas id="vommaChart"></canvas>
+        <div class="chart-controls">
+            <button id="vommaSwap">Swap X/Y</button>
+            <button id="vommaToggle">Toggle Line/Bar</button>
+        </div>
+    </div>
+    <div class="chart-container normal" id="speedContainer">
+        <canvas id="speedChart"></canvas>
+        <div class="chart-controls">
+            <button id="speedSwap">Swap X/Y</button>
+            <button id="speedToggle">Toggle Line/Bar</button>
+        </div>
+    </div>
+    <div id="customCharts"></div>
+
+    <button id="viewTableButton">View Data Table</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+Documentation for Option Chain Analysis Tool
+This documentation provides a comprehensive overview of a web-based application designed for analyzing option chains. The codebase is divided into four main files: index.html, index.js, table.html, and table.js. Below, each file is detailed, including its purpose, structure, and the functions/variables it contains. The application allows users to fetch option chain data, visualize it through charts, and view it in tabular format, with extensive customization options.
+File: index.html
+Purpose
+index.html serves as the main entry point and user interface for the option chain analysis tool. It provides input controls for fetching data and displays charts for various option exposures (e.g., delta, gamma).
+Structure and Elements
+Controls Section
+Stock Symbol Input: <input id="symbol" type="text">
+Allows users to enter a stock ticker (e.g., AAPL).
+Load Expirations Button: <button id="fetch-expirations-btn">
+Triggers fetching of expiration dates for the entered symbol.
+Expiration Select Box: <select id="expirations" multiple>
+Displays available expiration dates for selection.
+Fetch Option Chains Button: <button id="fetch-chains-btn">
+Initiates fetching of option chain data for selected expirations.
+Aggregation Radio Buttons: <input type="radio" name="aggregation">
+Options: "Sum Exposures" or "Separate Datasets" to control how data is aggregated.
+Strike Filters: <input id="strikes-above" type="number"> and <input id="strikes-below" type="number">
+Filters strikes above or below a specified count from the underlying price.
+Exposure Checkboxes: <input type="checkbox" class="exposure-checkbox">
+Selects which exposures (delta, gamma, vega, theta, rho, vanna, charm, vomma, speed) to plot.
+Custom Graph Section: <div id="custom-graph-options">
+Contains inputs for creating custom graphs (e.g., selecting values and operations).
+Chart Containers
+Default Charts: <div> elements with <canvas> tags (e.g., deltaChart, gammaChart)
+Display charts for each exposure type. Each includes:
+Swap Axes Button: Toggles x/y axis orientation.
+Chart Type Toggle: Switches between line and bar charts.
+Custom Charts: <div id="custom-charts">
+Placeholder for dynamically added custom charts.
+Loading Indicator
+<div id="loading">Loading...</div>
+Shown during data fetching operations.
+Data Table Link
+<button id="view-table-btn">
+Opens table.html in a new tab to view data in tabular form.
+File: index.js
+Purpose
+index.js contains the JavaScript logic for index.html, handling data fetching, processing, and chart rendering using the Chart.js library.
+Variables and Functions
+Chart.js Setup
+Variables: deltaCtx, gammaCtx, etc.  
+Type: CanvasRenderingContext2D  
+Purpose: Store 2D rendering contexts for each chart canvas (e.g., document.getElementById('deltaChart').getContext('2d')).
+Default Charts Configuration
+Variable: defaultCharts  
+Type: Object  
+Purpose: Defines configurations for default exposure charts.  
+Structure:  
+javascript
+{
+  delta: {
+    ctx: deltaCtx,
+    container: document.getElementById('deltaChartContainer'),
+    instance: null, // Chart.js instance
+    swapAxes: false,
+    chartType: 'line',
+    exposure: 'deltaExposure',
+    label: 'Delta Exposure',
+    color: '#FF0000'
+  },
+  // Similar for gamma, vega, theta, rho, vanna, charm, vomma, speed
+}
+Custom Charts Storage
+Variable: customCharts  
+Type: Array  
+Purpose: Stores configurations for user-defined custom charts.
+API Key
+Variable: apiKey  
+Type: String  
+Purpose: Hardcoded key for marketdata.app API (should be secured in production).
+Cache Variables
+Variables: cachedChainData, lastSymbol, lastExpirations  
+Purpose: Cache fetched option chain data, last symbol, and expiration dates to reduce API calls.
+User Inputs
+Variables: riskFreeRate, dividendYield  
+Type: Number  
+Purpose: Prompted from the user (defaults to 0 if invalid) for Black-Scholes calculations.
+Black-Scholes Helper Functions
+safeDivision(numerator, denominator)  
+Returns: Number  
+Purpose: Returns numerator / denominator or 0 if denominator is zero.
+standardNormalCDF(x)  
+Returns: Number  
+Purpose: Calculates the cumulative distribution function for a standard normal distribution.
+standardNormalPDF(x)  
+Returns: Number  
+Purpose: Calculates the probability density function for a standard normal distribution.
+calculateD1(spot, strike, timeToExpiration, volatility, riskFreeRate, dividendYield)  
+Returns: Number  
+Purpose: Computes the d1 parameter for Black-Scholes.
+calculateD2(d1, volatility, timeToExpiration)  
+Returns: Number  
+Purpose: Computes the d2 parameter for Black-Scholes.
+calculateVanna(spot, strike, timeToExpiration, volatility, riskFreeRate, dividendYield)  
+Returns: Number  
+Purpose: Calculates the vanna Greek (sensitivity of delta to volatility).
+calculateCharm(spot, strike, timeToExpiration, volatility, riskFreeRate, dividendYield)  
+Returns: Number  
+Purpose: Calculates the charm Greek (delta decay over time).
+calculateVomma(spot, strike, timeToExpiration, volatility, riskFreeRate, dividendYield)  
+Returns: Number  
+Purpose: Calculates the vomma Greek (sensitivity of vega to volatility).
+calculateSpeed(spot, strike, timeToExpiration, volatility, riskFreeRate, dividendYield)  
+Returns: Number  
+Purpose: Calculates the speed Greek (gamma sensitivity to spot price).
+Event Listeners
+Purpose: Bind functionality to UI elements (e.g., fetch expirations on button click, update charts on checkbox change).
+Data Fetching and Processing Functions
+fetchExpirations()  
+Purpose: Fetches expiration dates for the symbol via API and populates the select box.
+fetchOrProcessOptionChains()  
+Purpose: Determines if data should be fetched or cached data processed, then updates charts.
+fetchOptionChains(symbol, selectedExpirations)  
+Purpose: Fetches option chain data for selected expirations, computes additional Greeks, and caches results.
+fetchChainForExpiration(symbol, expiration)  
+Purpose: Fetches data for a single expiration, calculates Greeks and exposures.
+populateExpirations(expirations)  
+Purpose: Populates the expiration select box with unique dates.
+filterAndProcessStrikes()  
+Purpose: Applies strike filters and re-processes data.
+updateCharts()  
+Purpose: Updates all charts based on current selections.
+processOptionChain(data)  
+Purpose: Filters data by expirations and strikes, calculates exposures, and plots charts.
+calculateSummedExposures(data)  
+Purpose: Aggregates exposures across all expirations per strike with netting rules.
+calculateSeparateExposures(data)  
+Purpose: Calculates exposures per expiration, aggregating per strike.
+Chart Plotting Functions
+plotChart(ctx, chartInstance, strikes, data, label, color, underlyingPrice, chartType, swapAxes)  
+Purpose: Creates or updates a Chart.js chart with specified data and options.
+plotChartWithDatasets(ctx, chartInstance, exposuresByExp, exposureType, title, underlyingPrice, chartType, swapAxes)  
+Purpose: Plots multiple datasets (one per expiration) on a single chart.
+addCustomGraph()  
+Purpose: Adds a user-defined custom graph based on selected parameters.
+plotCustomCharts(exposures, rawData, underlyingPrice, aggregation)  
+Purpose: Renders all custom charts.
+File: table.html
+Purpose
+table.html provides a tabular view of the option chain data fetched in index.js.
+Structure and Elements
+Controls Section
+Table Format Radio Buttons: <input type="radio" name="table-format">
+Options: "Single Table" (calls and puts combined) or "Separate Tables".
+Strike Filters: <input id="strikes-above" type="number"> and <input id="strikes-below" type="number">
+Filters strikes relative to the underlying price.
+Column Checkboxes: <input type="checkbox" class="column-checkbox">
+Selects columns to display (e.g., open interest, volume, Greeks).
+Expiration Toggles: <div id="expiration-toggles">
+Checkboxes to select which expirations to show.
+Export Buttons: <button> elements for CSV, JSON, PDF export.
+Table Container
+<div id="table-container">
+Placeholder for dynamically generated tables.
+File: table.js
+Purpose
+table.js manages the logic for rendering and interacting with the tabular data.
+Variables and Functions
+Cached Data Retrieval
+Variable: cachedChainData  
+Purpose: Retrieved from localStorage; redirects to index.html if missing.
+Sorting State
+Variables: sortColumn, sortDirection  
+Purpose: Track the current sort column and direction (asc/desc).
+Display Headers
+Variable: displayHeaders  
+Type: Object  
+Purpose: Maps data keys to human-readable column names (e.g., openInterest: "Open Interest").
+Data Processing Functions
+filterDataByExpiration(data, underlyingPrice, strikesAbove, strikesBelow, expiration)  
+Purpose: Filters data for a specific expiration and strike range.
+sortData(data)  
+Purpose: Sorts filtered data by the current sort column and direction.
+Table Creation Functions
+createSingleTable(data, underlyingPrice, visibleColumns, expiration)  
+Purpose: Renders a single table with calls and puts side-by-side.
+createSeparateTables(data, underlyingPrice, visibleColumns, expiration)  
+Purpose: Renders separate tables for calls and puts.
+Interaction Functions
+toggleSort(column)  
+Purpose: Toggles sort direction for a column and re-renders the table.
+getVisibleColumns()  
+Purpose: Returns an array of currently selected column keys.
+populateCustomExposureColumns()  
+Purpose: Adds checkboxes for custom exposures if present.
+Export Functions
+exportToCsv(data, visibleExpirations)  
+Purpose: Exports filtered data as a CSV file.
+exportToJson(data, visibleExpirations)  
+Purpose: Exports filtered data as a JSON file.
+exportToPdf(data, visibleExpirations)  
+Purpose: Exports filtered data as a PDF file.
+Rendering Functions
+renderTable()  
+Purpose: Renders the table(s) based on current filters and selections.
+populateExpirationToggles()  
+Purpose: Creates checkboxes for each unique expiration date.
+Event Listeners
+Purpose: Handle user interactions (e.g., filter changes, export clicks).
+Overall Functionality
+This application provides a robust toolset for option chain analysis:
+Data Fetching: Uses the marketdata.app API to retrieve option chain data, caching results in localStorage.
+Visualization: Renders customizable charts for various exposures using Chart.js in index.js.
+Tabular View: Displays detailed data in table.js with filtering, sorting, and export options.
+Customization: Supports custom graph creation and dynamic filtering of strikes and expirations.
+The codebase is modular, with clear separation between UI (index.html, table.html) and logic (index.js, table.js), making it maintainable and extensible.

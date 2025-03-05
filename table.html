@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option Chain Data Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        #controls { margin-bottom: 20px; }
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: 90%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+        th { background-color: #f2f2f2; }
+        th:hover { background-color: #ddd; }
+        .chart-container { width: 80%; margin: 20px auto; }
+        #tableFormat, #strikeFilter, #columnSelect, #expirationFilter, #exportOptions { margin-top: 10px; }
+        .sort-arrow {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            margin-left: 5px;
+            vertical-align: middle;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+        .asc { border-bottom: 4px solid black; }
+        .desc { border-top: 4px solid black; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div id="tableFormat">
+            <label>Table Format:</label><br>
+            <input type="radio" id="singleTable" name="format" value="single" checked>
+            <label for="singleTable">Single Table (Calls Left, Puts Right)</label>
+            <input type="radio" id="separateTables" name="format" value="separate">
+            <label for="separateTables">Separate Tables (Calls and Puts)</label>
+        </div>
+        <div id="strikeFilter">
+            <label for="strikesAboveTable">Strikes Above:</label>
+            <input type="number" id="strikesAboveTable" min="0" value="5" style="width: 50px;">
+            <label for="strikesBelowTable">Strikes Below:</label>
+            <input type="number" id="strikesBelowTable" min="0" value="5" style="width: 50px;">
+            <button id="filterTableButton">Filter Strikes</button>
+        </div>
+        <div id="columnSelect">
+            <label>Select Columns to Display:</label><br>
+            <input type="checkbox" id="openInterestCheck" checked> <label for="openInterestCheck">Open Interest</label>
+            <input type="checkbox" id="volumeCheck" checked> <label for="volumeCheck">Volume</label>
+            <input type="checkbox" id="deltaCheck" checked> <label for="deltaCheck">Delta</label>
+            <input type="checkbox" id="gammaCheck" checked> <label for="gammaCheck">Gamma</label>
+            <input type="checkbox" id="vegaCheck" checked> <label for="vegaCheck">Vega</label>
+            <input type="checkbox" id="vannaCheck" checked> <label for="vannaCheck">Vanna</label>
+            <input type="checkbox" id="charmCheck" checked> <label for="charmCheck">Charm</label>
+            <input type="checkbox" id="vommaCheck" checked> <label for="vommaCheck">Vomma</label>
+            <input type="checkbox" id="speedCheck" checked> <label for="speedCheck">Speed</label>
+            <input type="checkbox" id="ivCheck" checked> <label for="ivCheck">IV</label>
+            <input type="checkbox" id="strikeCheck" checked> <label for="strikeCheck">Strike</label>
+            <input type="checkbox" id="expirationCheck"> <label for="expirationCheck">Expiration</label>
+            <input type="checkbox" id="dteCheck"> <label for="dteCheck">DTE</label>
+            <input type="checkbox" id="deltaExposureCheck"> <label for="deltaExposureCheck">Delta Exposure</label>
+            <input type="checkbox" id="gammaExposureCheck"> <label for="gammaExposureCheck">Gamma Exposure</label>
+            <input type="checkbox" id="vegaExposureCheck"> <label for="vegaExposureCheck">Vega Exposure</label>
+            <input type="checkbox" id="vannaExposureCheck"> <label for="vannaExposureCheck">Vanna Exposure</label>
+            <input type="checkbox" id="charmExposureCheck"> <label for="charmExposureCheck">Charm Exposure</label>
+            <input type="checkbox" id="vommaExposureCheck"> <label for="vommaExposureCheck">Vomma Exposure</label>
+            <input type="checkbox" id="speedExposureCheck"> <label for="speedExposureCheck">Speed Exposure</label>
+            <div id="customExposureColumns"></div>
+            <br>
+            <button id="applyColumnsButton">Apply Column Selection</button>
+        </div>
+        <div id="expirationFilter">
+            <label>Toggle Expirations:</label><br>
+            <div id="expirationToggles"></div>
+        </div>
+        <div id="exportOptions">
+            <button id="exportCsvButton">Export as CSV</button>
+            <button id="exportJsonButton">Export as JSON</button>
+            <button id="exportPdfButton">Export as PDF</button>
+        </div>
+    </div>
+    <div id="tableContainer"></div>
+
+    <!-- Libraries for export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="table.js"></script>
+</body>
+</html>
